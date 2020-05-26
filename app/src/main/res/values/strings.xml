@@ -16,4 +16,5 @@
     <string name="your_name">Your Name</string>
     <string name="menu_category">Category</string>
     <string name="category_name">Category Name</string>
+    <string name="menu_food_list">Food List</string>
 </resources>
