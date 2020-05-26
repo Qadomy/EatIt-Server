@@ -29,8 +29,10 @@ import com.qadomy.eatitserver.adapter.MyCategoriesAdapter
 import com.qadomy.eatitserver.callback.IMyButtonCallback
 import com.qadomy.eatitserver.common.Common
 import com.qadomy.eatitserver.common.MySwipeHelper
+import com.qadomy.eatitserver.eventbus.ToastEvent
 import com.qadomy.eatitserver.model.CategoryModel
 import dmax.dialog.SpotsDialog
+import org.greenrobot.eventbus.EventBus
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
@@ -47,7 +49,7 @@ class CategoryFragment : Fragment() {
     internal var categoryModels: List<CategoryModel> = ArrayList()
     internal lateinit var storage: FirebaseStorage
     internal lateinit var storageReference: StorageReference
-    private var imageUrl: Uri? = null
+    private var imageUri: Uri? = null
     internal lateinit var imageCategory: ImageView
 
     override fun onCreateView(
@@ -143,8 +145,8 @@ class CategoryFragment : Fragment() {
         editCategoryName.setText(Common.CATEGORY_SELECTED!!.name)
         Glide.with(requireContext()).load(Common.CATEGORY_SELECTED!!.image).into(imageCategory)
 
-        // set event, when click on image
-        imageCategory.setOnClickListener { view ->
+        // set event, when click on image to choose another image
+        imageCategory.setOnClickListener {
             val intent = Intent()
             intent.type = "image/*"
             intent.action = Intent.ACTION_GET_CONTENT
@@ -157,16 +159,18 @@ class CategoryFragment : Fragment() {
 
         builder.setNegativeButton("CANCEL") { dialogInterface, _ -> dialogInterface.dismiss() }
         builder.setPositiveButton("UPDATE") { dialogInterface, _ ->
+
             val updateData = HashMap<String, Any>()
             updateData["name"] = editCategoryName.text.toString()
 
-            if (imageUrl != null) {
+            if (imageUri != null) {
+
                 dialog.setMessage("Uploading...")
                 dialog.show()
 
                 val imageName = UUID.randomUUID().toString()
                 val imageFolder = storageReference.child("images/$imageName")
-                imageFolder.putFile(imageUrl!!)
+                imageFolder.putFile(imageUri!!)
                     .addOnFailureListener { e ->
                         dialog.dismiss()
                         Toast.makeText(context, "" + e.message, Toast.LENGTH_SHORT).show()
@@ -199,7 +203,9 @@ class CategoryFragment : Fragment() {
             }
             .addOnSuccessListener { task ->
                 categoryViewModel!!.loadCategory()
-                Toast.makeText(context, "Update Success", Toast.LENGTH_SHORT).show()
+                // we display Toast message from event bus
+                EventBus.getDefault()
+                    .postSticky(ToastEvent(isUpdate = true, isBackFromFoodList = false))
             }
     }
 
@@ -211,8 +217,8 @@ class CategoryFragment : Fragment() {
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK) {
 
             if (data != null && data.data != null) {
-                imageUrl = data.data
-                imageCategory.setImageURI(imageUrl)
+                imageUri = data.data
+                imageCategory.setImageURI(imageUri)
             }
         }
     }

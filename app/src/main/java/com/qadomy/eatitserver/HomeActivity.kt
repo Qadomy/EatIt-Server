@@ -1,7 +1,9 @@
 package com.qadomy.eatitserver
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.drawerlayout.widget.DrawerLayout
@@ -12,7 +14,11 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.navigation.NavigationView
+import com.google.firebase.auth.FirebaseAuth
+import com.qadomy.eatitserver.common.Common
 import com.qadomy.eatitserver.eventbus.CategoryClick
+import com.qadomy.eatitserver.eventbus.ChangeMenuClick
+import com.qadomy.eatitserver.eventbus.ToastEvent
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -23,6 +29,8 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navController: NavController
     private lateinit var navView: NavigationView
+
+    private var menuClick: Int = -1
 
     // onStart register event bust when start app
     override fun onStart() {
@@ -58,11 +66,72 @@ class HomeActivity : AppCompatActivity() {
         // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.nav_category, R.id.nav_food_list, R.id.nav_slideshow
+                R.id.nav_category, R.id.nav_food_list
             ), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+
+
+        // when click on items in menu
+        navView.run {
+//            Common.setSpanString("Hey, ", Common.CURRENT_USER!!.name, textUser)
+
+
+            // when click on items in menu
+            setNavigationItemSelectedListener { item ->
+                item.isChecked = true
+                drawerLayout!!.closeDrawers() // Close all currently open drawer views by animating them out of view.
+
+
+                when (item.itemId) {
+                    R.id.nav_sign_out -> {
+                        // when click on sign out menu
+                        signOut()
+
+                    }
+                    R.id.nav_category -> {
+                        if (menuClick != item.itemId)
+                            navController.navigate(R.id.nav_category)
+                    }
+
+                }
+
+                /** we save item id if user click on menu */
+                menuClick = item!!.itemId
+
+                true
+            }
+        }
+    }
+
+    // function when click on sign out menu
+    private fun signOut() {
+        val builder = androidx.appcompat.app.AlertDialog.Builder(this)
+        builder.setTitle("Sign out")
+            .setMessage("Are You Sure Want Exit?")
+            .setNegativeButton("CANCEL") { dialogInterface, _ -> dialogInterface.dismiss() }
+            .setPositiveButton("OK") { _, _ ->
+                // when click on ok for sign out
+
+                Common.FOOD_SELECTED = null
+                Common.CATEGORY_SELECTED = null
+                Common.currentServerUser = null
+
+                // sign out form firebase
+                FirebaseAuth.getInstance().signOut()
+
+                // make intent to main activity "Register"
+                val intent = Intent(this@HomeActivity, MainActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
+                finish()
+
+
+            }
+
+        val dialog = builder.create()
+        dialog.show()
     }
 
 
@@ -91,11 +160,41 @@ class HomeActivity : AppCompatActivity() {
      *
      * Event Bus
      */
+
+    // event when click on category item to navigate to food list screen
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     fun onCategoryClick(event: CategoryClick) {
         if (event.isSuccess) {
-            navController.navigate(R.id.nav_food_list)
+            if (menuClick != R.id.nav_food_list) {
+                navController!!.navigate(R.id.nav_food_list)
+                menuClick = R.id.nav_food_list
+            }
         }
+    }
+
+    // event to change menu of items "check if come from food list fragment "
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    fun oonChangeMenu(event: ChangeMenuClick) {
+        if (!event.isFromFoodList) {
+
+            //clear
+            navController!!.popBackStack(R.id.nav_category, true)
+            navController!!.navigate(R.id.nav_category)
+        }
+
+        menuClick = -1
+    }
+
+    // event to check Toast message come from (update in category fragment) or from food list fragment
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    fun onToastEvent(event: ToastEvent) {
+        if (event.isUpdate) {
+            Toast.makeText(this, "Update Success", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, "Delete success", Toast.LENGTH_SHORT).show()
+        }
+
+        EventBus.getDefault().postSticky(ChangeMenuClick(event.isBackFromFoodList))
     }
 
 }

@@ -17,4 +17,8 @@
     <string name="menu_category">Category</string>
     <string name="category_name">Category Name</string>
     <string name="menu_food_list">Food List</string>
+    <string name="food_price">Food Price</string>
+    <string name="food_name">Food Name</string>
+    <string name="food_description">Food Description</string>
+    <string name="menu_sign_out">Sign Out</string>
 </resources>
