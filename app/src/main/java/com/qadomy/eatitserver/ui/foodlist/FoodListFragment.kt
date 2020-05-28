@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.text.TextUtils
+import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -26,10 +27,12 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.qadomy.eatitserver.R
+import com.qadomy.eatitserver.SizeAddonEditActivity
 import com.qadomy.eatitserver.adapter.MyFoodListAdapter
 import com.qadomy.eatitserver.callback.IMyButtonCallback
 import com.qadomy.eatitserver.common.Common
 import com.qadomy.eatitserver.common.MySwipeHelper
+import com.qadomy.eatitserver.eventbus.AddonSizeEditEvent
 import com.qadomy.eatitserver.eventbus.ChangeMenuClick
 import com.qadomy.eatitserver.eventbus.ToastEvent
 import com.qadomy.eatitserver.model.FoodModel
@@ -110,16 +113,31 @@ class FoodListFragment : Fragment() {
             AnimationUtils.loadLayoutAnimation(context, R.anim.layout_item_from_left)
 
 
-        // change the bar title in food list fragemt
+        // change the bar title in food list fragment
         (activity as AppCompatActivity).supportActionBar!!.title = Common.CATEGORY_SELECTED!!.name
 
 
+        /**
+         *  DisplayMetrics: structure describing general information about a display,
+         *  such as it size, density, and font scaling.
+         */
+        val displayMetrics = DisplayMetrics()
+        requireActivity().windowManager.defaultDisplay.getMetrics(displayMetrics)
+        /** windowManager: for showing custom windows */
+        val width =
+            displayMetrics.widthPixels // retrieve the absolute width of the available display size in pixels
+
+
         /** for attach swipe for DELETE recycler view items */
-        val swipe = object : MySwipeHelper(requireContext(), recyclerFoodList!!, 300) {
+        val swipe = object : MySwipeHelper(requireContext(), recyclerFoodList!!, width / 6) {
             override fun instantisteMyButton(
                 viewHolder: RecyclerView.ViewHolder,
                 buffer: MutableList<MyButton>
             ) {
+
+                /**
+                 * Delete Button
+                 */
                 buffer.add(
                     MyButton(
                         context!!,
@@ -153,6 +171,9 @@ class FoodListFragment : Fragment() {
                     )
                 )
 
+                /**
+                 * Update Button
+                 */
                 buffer.add(
                     MyButton(
                         context!!,
@@ -164,6 +185,33 @@ class FoodListFragment : Fragment() {
                             override fun onClick(pos: Int) {
                                 // when click on update button after we swipe, we update it from menu and database
                                 showUpdateDialog(pos)
+
+                            }
+
+                        }
+                    )
+                )
+
+                /**
+                 *  Button
+                 */
+
+                buffer.add(
+                    MyButton(
+                        context!!,
+                        "Size",
+                        30,
+                        0,
+                        Color.parseColor("#12005e"),
+                        object : IMyButtonCallback {
+                            override fun onClick(pos: Int) {
+                                // when click on size button after we swipe, we edit it in menu and database
+                                Common.FOOD_SELECTED = foodModelList!![pos]
+
+                                startActivity(Intent(context, SizeAddonEditActivity::class.java))
+
+                                // Use EventBus to send event to tell sizeAddonActivity receive our request
+                                EventBus.getDefault().postSticky(AddonSizeEditEvent(false, pos))
 
                             }
 
