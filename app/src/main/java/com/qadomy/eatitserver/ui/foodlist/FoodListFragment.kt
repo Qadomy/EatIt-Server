@@ -1,15 +1,15 @@
 package com.qadomy.eatitserver.ui.foodlist
 
 import android.app.Activity
+import android.app.SearchManager
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.text.TextUtils
 import android.util.DisplayMetrics
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.view.animation.AnimationUtils
 import android.view.animation.LayoutAnimationController
 import android.widget.EditText
@@ -17,6 +17,7 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
@@ -95,7 +96,15 @@ class FoodListFragment : Fragment() {
         return root
     }
 
+
+    /**
+     *
+     * Init
+     */
     private fun initView(root: View?) {
+
+        // Enable options menu on Fragment
+        setHasOptionsMenu(true)
 
         // init dialog
         dialog = SpotsDialog.Builder().setContext(requireContext()).setCancelable(false).build()
@@ -156,7 +165,14 @@ class FoodListFragment : Fragment() {
                                     .setMessage("Do you really want to delete food ?")
                                     .setNegativeButton("CANCEL") { dialogInterface, _ -> dialogInterface.dismiss() }
                                     .setPositiveButton("DELETE") { _, _ ->
-                                        Common.CATEGORY_SELECTED!!.foods!!.removeAt(pos)
+
+                                        val foodModel = adapter!!.getItemAtPosition(pos)
+
+                                        if (foodModel.positionInList == -1)
+                                            Common.CATEGORY_SELECTED!!.foods!!.removeAt(pos)
+                                        else
+                                            Common.CATEGORY_SELECTED!!.foods!!.removeAt(foodModel.positionInList)
+
                                         updateFood(Common.CATEGORY_SELECTED!!.foods, true)
                                     }
 
@@ -184,7 +200,13 @@ class FoodListFragment : Fragment() {
                         object : IMyButtonCallback {
                             override fun onClick(pos: Int) {
                                 // when click on update button after we swipe, we update it from menu and database
-                                showUpdateDialog(pos)
+
+                                val foodModel = adapter!!.getItemAtPosition(pos)
+
+                                if (foodModel.positionInList == -1)
+                                    showUpdateDialog(pos, foodModel)
+                                else
+                                    showUpdateDialog(foodModel.positionInList, foodModel)
 
                             }
 
@@ -206,12 +228,27 @@ class FoodListFragment : Fragment() {
                         object : IMyButtonCallback {
                             override fun onClick(pos: Int) {
                                 // when click on size button after we swipe, we edit it in menu and database
-                                Common.FOOD_SELECTED = foodModelList!![pos]
+                                val foodModel = adapter!!.getItemAtPosition(pos)
+
+                                if (foodModel.positionInList == -1)
+                                    Common.FOOD_SELECTED = foodModelList!![pos]
+                                else
+                                    Common.FOOD_SELECTED = foodModel
 
                                 startActivity(Intent(context, SizeAddonEditActivity::class.java))
 
+
                                 // Use EventBus to send event to tell sizeAddonActivity receive our request
-                                EventBus.getDefault().postSticky(AddonSizeEditEvent(false, pos))
+                                if (foodModel.positionInList == -1)
+                                    EventBus.getDefault().postSticky(AddonSizeEditEvent(false, pos))
+                                else
+                                    EventBus.getDefault().postSticky(
+                                        AddonSizeEditEvent(
+                                            false,
+                                            foodModel.positionInList
+                                        )
+                                    )
+
 
                             }
 
@@ -233,12 +270,27 @@ class FoodListFragment : Fragment() {
                         object : IMyButtonCallback {
                             override fun onClick(pos: Int) {
                                 // when click on addon button after we swipe, we addon it in menu and database
-                                Common.FOOD_SELECTED = foodModelList!![pos]
+                                val foodModel = adapter!!.getItemAtPosition(pos)
+
+                                if (foodModel.positionInList == -1)
+                                    Common.FOOD_SELECTED = foodModelList!![pos]
+                                else
+                                    Common.FOOD_SELECTED = foodModel
 
                                 startActivity(Intent(context, SizeAddonEditActivity::class.java))
 
+
                                 // Use EventBus to send event to tell sizeAddonActivity receive our request
-                                EventBus.getDefault().postSticky(AddonSizeEditEvent(true, pos))
+                                if (foodModel.positionInList == -1)
+                                    EventBus.getDefault().postSticky(AddonSizeEditEvent(true, pos))
+                                else
+                                    EventBus.getDefault().postSticky(
+                                        AddonSizeEditEvent(
+                                            true,
+                                            foodModel.positionInList
+                                        )
+                                    )
+
 
                             }
 
@@ -252,8 +304,14 @@ class FoodListFragment : Fragment() {
 
     }
 
+
+    /**
+     *
+     * Methods
+     */
+
     // function to show dialog for update item from food menu after click on it
-    private fun showUpdateDialog(pos: Int) {
+    private fun showUpdateDialog(pos: Int, foodModel: FoodModel) {
         val builder = AlertDialog.Builder(requireContext())
         builder.setTitle("Update")
         builder.setMessage("Please fill information")
@@ -267,12 +325,11 @@ class FoodListFragment : Fragment() {
         imageFood = itemView.findViewById(R.id.img_food_image) as ImageView
 
         // set data
-        editFoodName.setText(StringBuilder("").append(Common.CATEGORY_SELECTED!!.foods!![pos].name))
-        editFoodPrice.setText(StringBuilder("").append(Common.CATEGORY_SELECTED!!.foods!![pos].price))
-        editFoodDescription.setText(StringBuilder("").append(Common.CATEGORY_SELECTED!!.foods!![pos].description))
+        editFoodName.setText(StringBuilder("").append(foodModel.name))
+        editFoodPrice.setText(StringBuilder("").append(foodModel.price))
+        editFoodDescription.setText(StringBuilder("").append(foodModel.description))
 
-        Glide.with(requireContext()).load(Common.CATEGORY_SELECTED!!.foods!![pos].image)
-            .into(imageFood!!)
+        Glide.with(requireContext()).load(foodModel.image).into(imageFood!!)
 
         // set event when click on image to choose a other image
         imageFood!!.setOnClickListener {
@@ -289,7 +346,7 @@ class FoodListFragment : Fragment() {
 
         builder.setNegativeButton("CANCEL") { dialogInterface, _ -> dialogInterface.dismiss() }
         builder.setPositiveButton("UPDATE") { dialogInterface, _ ->
-            val updateFood = Common.CATEGORY_SELECTED!!.foods!![pos]
+            val updateFood = foodModel
 
             updateFood.name = editFoodName.text.toString()
             updateFood.description = editFoodDescription.text.toString()
@@ -339,7 +396,6 @@ class FoodListFragment : Fragment() {
 
     }
 
-
     // function delete item from food menu and update items
     private fun updateFood(
         foods: MutableList<FoodModel>?,
@@ -384,5 +440,77 @@ class FoodListFragment : Fragment() {
                 imageFood!!.setImageURI(imageUri)
             }
         }
+    }
+
+
+    /**
+     *
+     * Menu
+     */
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.food_list_menu, menu)
+
+        // create search view
+        val menuItem = menu.findItem(R.id.action_search)
+
+        val searchManager =
+            requireActivity().getSystemService(Context.SEARCH_SERVICE) as SearchManager
+
+        val searchView = menuItem.actionView as SearchView
+
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(requireActivity().componentName!!))
+
+        // Event, when click on search button
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(search: String?): Boolean {
+                startSearchFoods(search!!)
+
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                return false
+            }
+        })
+
+        // clear text when click to clear button
+        val closeButton = searchView.findViewById<View>(R.id.search_close_btn) as ImageView
+        closeButton.setOnClickListener {
+            val ed = searchView.findViewById<View>(R.id.search_src_text) as EditText
+            // clear text
+            ed.setText("")
+
+            // clear query
+            searchView.setQuery("", false)
+
+            // collapse the action view
+            searchView.onActionViewCollapsed()
+
+            // collapse the search widget
+            menuItem.collapseActionView()
+
+            // restore result to original
+            foodListViewModel.getMutableFoodListData().value = Common.CATEGORY_SELECTED!!.foods
+        }
+    }
+
+
+    // method for make search
+    private fun startSearchFoods(search: String?) {
+        val resultFood: MutableList<FoodModel> = ArrayList()
+
+        for (i in Common.CATEGORY_SELECTED!!.foods!!.indices) {
+
+            val foodModel = Common.CATEGORY_SELECTED!!.foods!![i]
+            if (foodModel.name!!.toLowerCase().contains(search!!.toLowerCase())) {
+                // Here will save index of search result item
+                foodModel.positionInList = i
+                resultFood.add(foodModel)
+            }
+        }
+
+        // update search result
+        foodListViewModel!!.getMutableFoodListData().value = resultFood
     }
 }

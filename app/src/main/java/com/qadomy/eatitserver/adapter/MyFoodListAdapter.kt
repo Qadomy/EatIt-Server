@@ -83,4 +83,10 @@ class MyFoodListAdapter(
 
     }
 
+
+    // method for return the item position
+    fun getItemAtPosition(pos: Int): FoodModel {
+        return foodList[pos]
+    }
+
 }

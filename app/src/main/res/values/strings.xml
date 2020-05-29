@@ -27,4 +27,5 @@
     <string name="edit">Edit</string>
     <string name="size_name">Size Name</string>
     <string name="action_save">Save</string>
+    <string name="action_search">Search</string>
 </resources>
