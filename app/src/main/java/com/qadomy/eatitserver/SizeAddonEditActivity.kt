@@ -1,6 +1,7 @@
 package com.qadomy.eatitserver
 
 import android.os.Bundle
+import android.text.TextUtils
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -9,11 +10,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.database.FirebaseDatabase
+import com.qadomy.eatitserver.adapter.MyAddonAdapter
 import com.qadomy.eatitserver.adapter.MySizeAdapter
 import com.qadomy.eatitserver.common.Common
-import com.qadomy.eatitserver.eventbus.AddonSizeEditEvent
-import com.qadomy.eatitserver.eventbus.SelectSizeModel
-import com.qadomy.eatitserver.eventbus.UpdateSizeModel
+import com.qadomy.eatitserver.eventbus.*
+import com.qadomy.eatitserver.model.AddonModel
 import com.qadomy.eatitserver.model.SizeModel
 import kotlinx.android.synthetic.main.activity_size_addon_edit.*
 import org.greenrobot.eventbus.EventBus
@@ -23,10 +24,12 @@ import org.greenrobot.eventbus.ThreadMode
 class SizeAddonEditActivity : AppCompatActivity() {
 
 
-    var adapter: MySizeAdapter? = null
+    var sizeAdapter: MySizeAdapter? = null
+    var addonAdapter: MyAddonAdapter? = null
     private var foodEditPosition = -1
     private var needSave = false
     private var isAddon = false
+
 
     // onStart, register event bus
     override fun onStart() {
@@ -50,6 +53,12 @@ class SizeAddonEditActivity : AppCompatActivity() {
         init()
     }
 
+
+    /**
+     *
+     * Init
+     */
+
     private fun init() {
         setSupportActionBar(tool_bar)
         supportActionBar!!.setDisplayHomeAsUpEnabled(true) // will make the icon clickable and add the < at the left of the icon.
@@ -69,38 +78,81 @@ class SizeAddonEditActivity : AppCompatActivity() {
         // Event, when click on create button
         btn_create.setOnClickListener {
 
-            if (!isAddon) { // mean change in size
-                if (adapter != null) {
+            if (!isAddon) { // mean change in size (create button when choose size)
+                if (sizeAdapter != null) {
                     val sizeModel = SizeModel()
 
-                    sizeModel.name = edt_name.text.toString()
-                    sizeModel.price = edt_price.text.toString().toLong()
+                    if (TextUtils.isEmpty(edt_name.text) && TextUtils.isEmpty(edt_price.text)) {
+                        // if two edit text is empty
+                        Toast.makeText(this, "You must edit some thing", Toast.LENGTH_SHORT).show()
 
-                    adapter!!.addNewSize(sizeModel)
+                    } else {
+                        // if any of edit text not empty
+                        sizeModel.name = edt_name.text.toString()
+
+                        if (TextUtils.isEmpty(edt_price.text))
+                        // if we didn't write any price
+                            sizeModel.price = 0
+                        else
+                            sizeModel.price = edt_price.text.toString().toLong()
+
+                        sizeAdapter!!.addNewSize(sizeModel)
+                    }
                 }
-            } else {    // mean change in addon
+            } else {    // mean change in addon (create button when choose addon)
 
-                //todo: late
+                if (addonAdapter != null) {
+                    val addonModel = AddonModel()
+
+                    if (TextUtils.isEmpty(edt_name.text) && TextUtils.isEmpty(edt_price.text)) {
+                        // if two edit text is empty
+                        Toast.makeText(this, "You must add some thing", Toast.LENGTH_SHORT).show()
+
+                    } else {
+                        // if any of edit text not empty
+                        addonModel.name = edt_name.text.toString()
+
+                        if (TextUtils.isEmpty(edt_price.text))
+                        // if we didn't write any price
+
+                            addonModel.price = 0
+                        else
+                            addonModel.price = edt_price.text.toString().toLong()
+
+                        addonAdapter!!.addNewAddon(addonModel)
+                    }
+
+                }
             }
         }
 
         // Event, when click on edit button
         btn_edit.setOnClickListener {
-            if (!isAddon) { // mean size
-                if (adapter != null) {
+            if (!isAddon) { // mean size, (Edit button when choose size)
+                if (sizeAdapter != null) {
 
                     val sizeModel = SizeModel()
                     sizeModel.name = edt_name.text.toString()
                     sizeModel.price = edt_price.text.toString().toLong()
 
-                    adapter!!.editSize(sizeModel)
+                    sizeAdapter!!.editSize(sizeModel)
 
                 }
 
-            } else { // mean addon
+            } else { // mean addon, (Edit button when choose addon)
 
+                if (sizeAdapter != null) {
+
+                    val addonModel = AddonModel()
+                    addonModel.name = edt_name.text.toString()
+                    addonModel.price = edt_price.text.toString().toLong()
+
+                    addonAdapter!!.editAddon(addonModel)
+
+                }
             }
         }
+
 
     }
 
@@ -122,7 +174,7 @@ class SizeAddonEditActivity : AppCompatActivity() {
             R.id.action_save -> saveData() // save data
             android.R.id.home -> {
 
-                if (needSave) {
+                if (needSave) { // mean if happened any changes
                     val builder = AlertDialog.Builder(this)
                         .setTitle("Cancel?")
                         .setMessage("Do you really want to close without saving?")
@@ -138,6 +190,9 @@ class SizeAddonEditActivity : AppCompatActivity() {
 
                     val dialog = builder.create() // create dialog
                     dialog.show() // display dialog
+                } else {
+                    // if back without make anything
+                    closeActivity()
                 }
             }
 
@@ -190,6 +245,7 @@ class SizeAddonEditActivity : AppCompatActivity() {
         }
     }
 
+
     /**
      * because we have send event from fragment Food List, so in this activity we will
      * listen this event to display data
@@ -197,19 +253,32 @@ class SizeAddonEditActivity : AppCompatActivity() {
 
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     fun onAddSizeReceive(event: AddonSizeEditEvent) {
-        if (!event.isAddon) { // Size
+        if (!event.isAddon) { // mean size
+
             if (Common.FOOD_SELECTED!!.size != null) {
 
-                adapter = MySizeAdapter(this, Common.FOOD_SELECTED!!.size.toMutableList())
+                sizeAdapter = MySizeAdapter(this, Common.FOOD_SELECTED!!.size.toMutableList())
                 foodEditPosition = event.pos
-                recycler_addon_size!!.adapter = adapter
+                recycler_addon_size!!.adapter = sizeAdapter
                 isAddon = event.isAddon
 
             }
+
+        } else { // mean addon
+
+            if (Common.FOOD_SELECTED!!.addon != null) {
+
+                addonAdapter = MyAddonAdapter(this, Common.FOOD_SELECTED!!.addon.toMutableList())
+                foodEditPosition = event.pos
+                recycler_addon_size!!.adapter = addonAdapter
+                isAddon = event.isAddon
+
+            }
+
         }
     }
 
-    //
+    // event for edit size item
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     fun onSizeModelUpdate(event: UpdateSizeModel) {
         if (event.sizeModelList != null) { // Size
@@ -218,12 +287,34 @@ class SizeAddonEditActivity : AppCompatActivity() {
         }
     }
 
-    //
+
+    // event when select item to edit size
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     fun onSelectSizeEvent(event: SelectSizeModel) {
         if (event.sizeModel != null) { // Size
             edt_name.setText(event.sizeModel!!.name)
             edt_price.setText(event.sizeModel!!.price!!.toString())
+            btn_edit.isEnabled = true
+        } else
+            btn_edit.isEnabled = false
+    }
+
+
+    // event for edit addon item
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    fun onAddonModelUpdate(event: UpdateAddonModel) {
+        if (event.addonModelList != null) { // Size
+            needSave = true
+            Common.FOOD_SELECTED!!.addon = event.addonModelList!! // update
+        }
+    }
+
+    // event when select item to edit addon
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    fun onSelectAddonEvent(event: SelectAddonModel) {
+        if (event.addonModel != null) { // Size
+            edt_name.setText(event.addonModel!!.name)
+            edt_price.setText(event.addonModel!!.price!!.toString())
             btn_edit.isEnabled = true
         } else
             btn_edit.isEnabled = false

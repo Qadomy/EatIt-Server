@@ -6,7 +6,7 @@ class UpdateSizeModel {
 
     /**
      *
-     *  This class will use for tell activity known when update data
+     *  This class will use for tell activity known when update size
      */
 
     var sizeModelList: List<SizeModel>? = null

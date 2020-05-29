@@ -193,7 +193,7 @@ class FoodListFragment : Fragment() {
                 )
 
                 /**
-                 *  Button
+                 *  Size Button
                  */
 
                 buffer.add(
@@ -212,6 +212,33 @@ class FoodListFragment : Fragment() {
 
                                 // Use EventBus to send event to tell sizeAddonActivity receive our request
                                 EventBus.getDefault().postSticky(AddonSizeEditEvent(false, pos))
+
+                            }
+
+                        }
+                    )
+                )
+
+                /**
+                 *  Addon Button
+                 */
+
+                buffer.add(
+                    MyButton(
+                        context!!,
+                        "Addon",
+                        30,
+                        0,
+                        Color.parseColor("#333639"),
+                        object : IMyButtonCallback {
+                            override fun onClick(pos: Int) {
+                                // when click on addon button after we swipe, we addon it in menu and database
+                                Common.FOOD_SELECTED = foodModelList!![pos]
+
+                                startActivity(Intent(context, SizeAddonEditActivity::class.java))
+
+                                // Use EventBus to send event to tell sizeAddonActivity receive our request
+                                EventBus.getDefault().postSticky(AddonSizeEditEvent(true, pos))
 
                             }
 
