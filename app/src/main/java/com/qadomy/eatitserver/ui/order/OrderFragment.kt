@@ -224,6 +224,7 @@ class OrderFragment : Fragment() {
 
                                 val orderMode = adapter!!.getItemAtPosition(pos)
 
+                                // make delete dialog
                                 val builder = AlertDialog.Builder(context!!)
                                     .setTitle("Delete")
                                     .setMessage("Do you really want to remove this order?")
@@ -276,7 +277,7 @@ class OrderFragment : Fragment() {
                 )
 
                 /**
-                 *  Addon Button
+                 *  Edit Button
                  */
 
                 buffer.add(
@@ -288,7 +289,8 @@ class OrderFragment : Fragment() {
                         Color.parseColor("#333639"),
                         object : IMyButtonCallback {
                             override fun onClick(pos: Int) {
-                                // when click on addon button after we swipe, we addon it in menu and database
+                                // when click on Edit button after we swipe, we update it in list in firebase
+
 
                             }
 
@@ -311,14 +313,17 @@ class OrderFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == R.id.action_filter) {
+        return if (item.itemId == R.id.action_filter) {
             /**
              * when click on filter icon menu, display an dialog as bottom sheet "order filter fragment"
              */
             val bottomSheet = BottomSheetOrderFragment.instance
             bottomSheet!!.show(requireActivity().supportFragmentManager, "OrderList")
-        }
-        return true
+            true
+
+        } else
+            super.onOptionsItemSelected(item)
+
     }
 
 

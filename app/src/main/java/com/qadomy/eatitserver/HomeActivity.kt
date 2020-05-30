@@ -77,8 +77,6 @@ class HomeActivity : AppCompatActivity() {
 
         // when click on items in menu
         navView.run {
-//            Common.setSpanString("Hey, ", Common.CURRENT_USER!!.name, textUser)
-
 
             // when click on items in menu
             setNavigationItemSelectedListener { item ->
@@ -93,12 +91,18 @@ class HomeActivity : AppCompatActivity() {
 
                     }
                     R.id.nav_category -> {
-                        if (menuClick != item.itemId)
+                        if (menuClick != item.itemId) {
+                            navController.popBackStack() // clear back stack
                             navController.navigate(R.id.nav_category)
+                        }
                     }
                     R.id.nav_order -> {
-                        if (menuClick != item.itemId)
+                        if (menuClick != item.itemId) {
+                            navController.popBackStack() // clear back stack
                             navController.navigate(R.id.nav_order)
+                        }
+
+
                     }
 
                 }
@@ -114,6 +118,9 @@ class HomeActivity : AppCompatActivity() {
         val headerView = navView.getHeaderView(0)
         val textUser = headerView.findViewById<View>(R.id.txt_user) as TextView
         Common.setSpanString("Hey Mr.", Common.currentServerUser!!.name, textUser)
+
+
+        menuClick = R.id.nav_category // default
 
     }// end onCreate
 
