@@ -29,7 +29,7 @@ class OrderViewModel : ViewModel(), IOrderCallbackListener {
         return orderModelList
     }
 
-    private fun loadOrder(status: Int) {
+    fun loadOrder(status: Int) {
         val tempList: MutableList<OrderModel> = ArrayList()
         val orderRef = FirebaseDatabase.getInstance().getReference(Common.ORDER_REF)
             .orderByChild("orderStatus")
@@ -58,7 +58,7 @@ class OrderViewModel : ViewModel(), IOrderCallbackListener {
      * methods implement from IOrderCallbackListener interface
      */
     override fun onOrderLoadSuccess(orderModel: List<OrderModel>) {
-        if (orderModel.isNotEmpty()) {
+        if (orderModel.size >= 0) {
 
             // here for sort orders
             Collections.sort(orderModel) { t1, t2 ->

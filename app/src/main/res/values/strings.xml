@@ -29,4 +29,9 @@
     <string name="action_save">Save</string>
     <string name="action_search">Search</string>
     <string name="menu_orders">Orders</string>
+    <string name="action_filter">Filter</string>
+    <string name="placed">Placed</string>
+    <string name="shipping">Shipping</string>
+    <string name="shipped">Shipped</string>
+    <string name="cancelled">Cancelled</string>
 </resources>

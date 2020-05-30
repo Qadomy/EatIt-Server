@@ -56,7 +56,7 @@ class MyOrderAdapter(
         Common.setSpanStringColor(
             "Num of items ",
 
-            if (orderList[position].cartItemList != null)
+            if (orderList[position].cartItemList == null)
                 "0"
             else
                 orderList[position].cartItemList!!.size.toString(),

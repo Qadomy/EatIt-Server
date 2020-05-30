@@ -30,7 +30,7 @@
         android:id="@+id/nav_order"
         android:name="com.qadomy.eatitserver.ui.order.OrderFragment"
         android:label="@string/menu_orders"
-        tools:layout="@layout/order_fragment">
+        tools:layout="@layout/fragment_order">
 
         <action
             android:id="@+id/clearBackStack"
