@@ -70,6 +70,11 @@ class MyOrderAdapter(
         )
     }
 
+    // function for return the position of item in recycler view
+    fun getItemAtPosition(pos: Int): OrderModel {
+        return orderList[pos]
+    }
+
 
     // MyViewHolder class
     inner class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),

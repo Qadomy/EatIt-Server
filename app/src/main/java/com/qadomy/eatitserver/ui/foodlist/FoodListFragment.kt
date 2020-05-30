@@ -137,7 +137,7 @@ class FoodListFragment : Fragment() {
             displayMetrics.widthPixels // retrieve the absolute width of the available display size in pixels
 
 
-        /** for attach swipe for DELETE recycler view items */
+        /** for attach swipe for DELETE,UPDATE,SIZE,ADDON recycler view items */
         val swipe = object : MySwipeHelper(requireContext(), recyclerFoodList!!, width / 6) {
             override fun instantisteMyButton(
                 viewHolder: RecyclerView.ViewHolder,

@@ -1,6 +1,10 @@
 package com.qadomy.eatitserver.ui.order
 
+import android.content.Intent
+import android.graphics.Color
+import android.net.Uri
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.view.*
 import android.view.animation.AnimationUtils
 import android.view.animation.LayoutAnimationController
@@ -10,9 +14,17 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionDeniedResponse
+import com.karumi.dexter.listener.PermissionGrantedResponse
+import com.karumi.dexter.listener.PermissionRequest
+import com.karumi.dexter.listener.single.PermissionListener
 import com.qadomy.eatitserver.R
 import com.qadomy.eatitserver.adapter.MyOrderAdapter
+import com.qadomy.eatitserver.callback.IMyButtonCallback
 import com.qadomy.eatitserver.common.BottomSheetOrderFragment
+import com.qadomy.eatitserver.common.MySwipeHelper
 import com.qadomy.eatitserver.eventbus.ChangeMenuClick
 import com.qadomy.eatitserver.eventbus.LoadOrderEvent
 import kotlinx.android.synthetic.main.fragment_order.*
@@ -102,6 +114,141 @@ class OrderFragment : Fragment() {
 
         layoutAnimationController =
             AnimationUtils.loadLayoutAnimation(context, R.anim.layout_item_from_left)
+
+
+        /**
+         *  DisplayMetrics: structure describing general information about a display,
+         *  such as it size, density, and font scaling.
+         */
+        val displayMetrics = DisplayMetrics()
+        requireActivity().windowManager.defaultDisplay.getMetrics(displayMetrics)
+        /** windowManager: for showing custom windows */
+        val width =
+            displayMetrics.widthPixels // retrieve the absolute width of the available display size in pixels
+
+
+        /** for attach swipe for Directions,call,remove,edit recycler view items */
+        val swipe = object : MySwipeHelper(requireContext(), recyclerOrder!!, width / 6) {
+            override fun instantisteMyButton(
+                viewHolder: RecyclerView.ViewHolder,
+                buffer: MutableList<MyButton>
+            ) {
+
+                /**
+                 * Delete Button
+                 */
+                buffer.add(
+                    MyButton(
+                        context!!,
+                        "Directions",
+                        30,
+                        0,
+                        Color.parseColor("#9b0000"),
+                        object : IMyButtonCallback {
+                            override fun onClick(pos: Int) {
+                                // when click on delete button after we swipe, we delete it from menu and database
+
+                            }
+
+                        }
+                    )
+                )
+
+                /**
+                 * Update Button
+                 */
+                buffer.add(
+                    MyButton(
+                        context!!,
+                        "Call",
+                        30,
+                        0,
+                        Color.parseColor("#520027"),
+                        object : IMyButtonCallback {
+                            override fun onClick(pos: Int) {
+                                // when click on call button after we swipe, to call with customer
+
+                                Dexter.withContext(activity)
+                                    .withPermission(android.Manifest.permission.CALL_PHONE)
+                                    .withListener(object : PermissionListener {
+                                        override fun onPermissionGranted(p0: PermissionGrantedResponse?) {
+                                            val orderModel = adapter!!.getItemAtPosition(pos)
+                                            val intent = Intent()
+                                            intent.action = Intent.ACTION_DIAL
+                                            intent.data = Uri.parse(
+                                                StringBuilder("tel: ")
+                                                    .append(orderModel.userPhone).toString()
+                                            )
+                                            startActivity(intent)
+                                        }
+
+                                        override fun onPermissionRationaleShouldBeShown(
+                                            p0: PermissionRequest?,
+                                            p1: PermissionToken?
+                                        ) {
+
+                                        }
+
+                                        override fun onPermissionDenied(p0: PermissionDeniedResponse?) {
+                                            Toast.makeText(
+                                                context,
+                                                "You must accept this permission" + p0!!.permissionName,
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }).check()
+                            }
+
+                        }
+                    )
+                )
+
+                /**
+                 *  Size Button
+                 */
+
+                buffer.add(
+                    MyButton(
+                        context!!,
+                        "Remove",
+                        30,
+                        0,
+                        Color.parseColor("#12005e"),
+                        object : IMyButtonCallback {
+                            override fun onClick(pos: Int) {
+                                // when click on size button after we swipe, we edit it in menu and database
+
+
+                            }
+
+                        }
+                    )
+                )
+
+                /**
+                 *  Addon Button
+                 */
+
+                buffer.add(
+                    MyButton(
+                        context!!,
+                        "Edit",
+                        30,
+                        0,
+                        Color.parseColor("#333639"),
+                        object : IMyButtonCallback {
+                            override fun onClick(pos: Int) {
+                                // when click on addon button after we swipe, we addon it in menu and database
+
+                            }
+
+                        }
+                    )
+                )
+            }
+
+
+        }
     }
 
 
