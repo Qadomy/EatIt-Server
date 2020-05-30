@@ -16,7 +16,7 @@ import java.text.SimpleDateFormat
 
 class MyOrderAdapter(
     internal var context: Context,
-    internal var orderList: List<OrderModel>
+    internal var orderList: MutableList<OrderModel>
 ) : RecyclerView.Adapter<MyOrderAdapter.MyViewHolder>() {
 
     lateinit var simpleDateFormat: SimpleDateFormat
@@ -73,6 +73,11 @@ class MyOrderAdapter(
     // function for return the position of item in recycler view
     fun getItemAtPosition(pos: Int): OrderModel {
         return orderList[pos]
+    }
+
+    // function for remove at position from recycler view
+    fun removeItem(pos: Int) {
+        orderList.removeAt(pos)
     }
 
 

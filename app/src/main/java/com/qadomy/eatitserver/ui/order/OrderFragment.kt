@@ -1,5 +1,7 @@
 package com.qadomy.eatitserver.ui.order
 
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Color
 import android.net.Uri
@@ -14,6 +16,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.database.FirebaseDatabase
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionDeniedResponse
@@ -24,6 +27,7 @@ import com.qadomy.eatitserver.R
 import com.qadomy.eatitserver.adapter.MyOrderAdapter
 import com.qadomy.eatitserver.callback.IMyButtonCallback
 import com.qadomy.eatitserver.common.BottomSheetOrderFragment
+import com.qadomy.eatitserver.common.Common
 import com.qadomy.eatitserver.common.MySwipeHelper
 import com.qadomy.eatitserver.eventbus.ChangeMenuClick
 import com.qadomy.eatitserver.eventbus.LoadOrderEvent
@@ -81,7 +85,7 @@ class OrderFragment : Fragment() {
 
         orderViewModel!!.getOrderModelList().observe(viewLifecycleOwner, Observer { orderList ->
             if (orderList != null) {
-                adapter = MyOrderAdapter(requireContext(), orderList)
+                adapter = MyOrderAdapter(requireContext(), orderList.toMutableList())
                 recyclerOrder.adapter = adapter
                 recyclerOrder.layoutAnimation = layoutAnimationController
 
@@ -155,7 +159,7 @@ class OrderFragment : Fragment() {
                 )
 
                 /**
-                 * Update Button
+                 * Call Button
                  */
                 buffer.add(
                     MyButton(
@@ -204,7 +208,7 @@ class OrderFragment : Fragment() {
                 )
 
                 /**
-                 *  Size Button
+                 *  Remove Button
                  */
 
                 buffer.add(
@@ -216,9 +220,55 @@ class OrderFragment : Fragment() {
                         Color.parseColor("#12005e"),
                         object : IMyButtonCallback {
                             override fun onClick(pos: Int) {
-                                // when click on size button after we swipe, we edit it in menu and database
+                                // when click on remove button after we swipe, we remove order from list and database
+
+                                val orderMode = adapter!!.getItemAtPosition(pos)
+
+                                val builder = AlertDialog.Builder(context!!)
+                                    .setTitle("Delete")
+                                    .setMessage("Do you really want to remove this order?")
+                                    .setNegativeButton("CANCEL") { dialogInterface, _ -> dialogInterface.dismiss() }
+                                    .setPositiveButton("DELETE") { dialogInterface, _ ->
+                                        FirebaseDatabase.getInstance()
+                                            .getReference(Common.ORDER_REF)
+                                            .child(orderMode.key!!)
+                                            .removeValue()
+                                            .addOnFailureListener {
+                                                Toast.makeText(
+                                                    context!!,
+                                                    "" + it.message,
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+                                            .addOnSuccessListener {
+                                                adapter!!.removeItem(pos)
+                                                adapter!!.notifyItemRemoved(pos)
+
+                                                txt_order_filter.text = StringBuilder("Orders{")
+                                                    .append(adapter!!.itemCount)
+                                                    .append(")")
+
+                                                dialogInterface.dismiss()
+
+                                                Toast.makeText(
+                                                    context!!,
+                                                    "Order has been delete!",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+
+                                            }
+                                    }
+
+                                val dialog = builder.create()
+                                dialog.show()
 
 
+                                // change buttons colors for negative and positive buttons
+                                val btnNegative = dialog.getButton(DialogInterface.BUTTON_NEGATIVE)
+                                btnNegative.setTextColor(Color.LTGRAY)
+
+                                val btnPositive = dialog.getButton(DialogInterface.BUTTON_POSITIVE)
+                                btnPositive.setTextColor(Color.RED)
                             }
 
                         }
