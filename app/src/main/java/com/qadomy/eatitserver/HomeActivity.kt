@@ -3,6 +3,8 @@ package com.qadomy.eatitserver
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
+import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -66,7 +68,7 @@ class HomeActivity : AppCompatActivity() {
         // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.nav_category, R.id.nav_food_list
+                R.id.nav_category, R.id.nav_food_list, R.id.nav_order
             ), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
@@ -94,6 +96,10 @@ class HomeActivity : AppCompatActivity() {
                         if (menuClick != item.itemId)
                             navController.navigate(R.id.nav_category)
                     }
+                    R.id.nav_order -> {
+                        if (menuClick != item.itemId)
+                            navController.navigate(R.id.nav_order)
+                    }
 
                 }
 
@@ -103,7 +109,13 @@ class HomeActivity : AppCompatActivity() {
                 true
             }
         }
-    }
+
+        // view
+        val headerView = navView.getHeaderView(0)
+        val textUser = headerView.findViewById<View>(R.id.txt_user) as TextView
+        Common.setSpanString("Hey Mr.", Common.currentServerUser!!.name, textUser)
+
+    }// end onCreate
 
     // function when click on sign out menu
     private fun signOut() {

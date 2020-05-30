@@ -26,4 +26,18 @@
 
     </fragment>
 
+    <fragment
+        android:id="@+id/nav_order"
+        android:name="com.qadomy.eatitserver.ui.order.OrderFragment"
+        android:label="@string/menu_orders"
+        tools:layout="@layout/order_fragment">
+
+        <action
+            android:id="@+id/clearBackStack"
+            app:launchSingleTop="true"
+            app:popUpTo="@id/nav_category"
+            app:popUpToInclusive="true" />
+
+    </fragment>
+
 </navigation>

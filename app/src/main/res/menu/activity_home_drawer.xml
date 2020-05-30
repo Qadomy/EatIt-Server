@@ -12,11 +12,16 @@
     </group>
 
     <group>
-
         <item
             android:id="@+id/nav_sign_out"
             android:icon="@drawable/ic_exit_to_app_black"
             android:title="@string/menu_sign_out" />
     </group>
 
+    <group>
+        <item
+            android:id="@+id/nav_order"
+            android:icon="@drawable/ic_baseline_format_list_bulleted_black"
+            android:title="@string/menu_orders" />
+    </group>
 </menu>
