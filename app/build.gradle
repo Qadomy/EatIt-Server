@@ -60,6 +60,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth:19.3.1'
     implementation 'com.google.firebase:firebase-database:19.3.0'
     implementation 'com.google.firebase:firebase-storage:19.1.1'
+    implementation 'com.google.firebase:firebase-messaging:20.2.0'
 
     // firebase ui
     implementation 'com.firebaseui:firebase-ui-auth:6.2.0'
@@ -79,6 +80,20 @@ dependencies {
 
     // Dexter, process of requesting permissions at runtime
     implementation 'com.karumi:dexter:6.1.2'
+
+
+    // Retrofit
+    implementation 'com.squareup.retrofit2:adapter-rxjava2:2.6.2'
+    implementation 'com.squareup.retrofit2:converter-gson:2.6.2'
+
+
+    // Rx.Java
+    implementation "io.reactivex.rxjava2:rxjava:2.2.8"
+    implementation "io.reactivex.rxjava2:rxandroid:2.1.1"
+
+
+    // Spots progress dialog
+    implementation 'com.github.d-max:spots-dialog:1.1@aar'
 
 
 }

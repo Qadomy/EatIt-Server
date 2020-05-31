@@ -17,6 +17,7 @@ import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.messaging.FirebaseMessaging
 import com.qadomy.eatitserver.common.Common
 import com.qadomy.eatitserver.eventbus.CategoryClick
 import com.qadomy.eatitserver.eventbus.ChangeMenuClick
@@ -53,6 +54,8 @@ class HomeActivity : AppCompatActivity() {
         val toolbar: Toolbar = findViewById(R.id.toolbar)
         setSupportActionBar(toolbar)
 
+        // subscribe To Topic
+        subscribeToTopic(Common.getNewOrderTopic())
 
         // init drawerLayout
         drawerLayout = findViewById(R.id.drawer_layout)
@@ -123,6 +126,25 @@ class HomeActivity : AppCompatActivity() {
         menuClick = R.id.nav_category // default
 
     }// end onCreate
+
+
+    // method to subscribe to topic because in client app we send notification to topic
+    private fun subscribeToTopic(newOrderTopic: String) {
+        FirebaseMessaging.getInstance()
+            .subscribeToTopic(newOrderTopic)
+            .addOnFailureListener { message ->
+                Toast.makeText(
+                    this@HomeActivity,
+                    "" + message.message,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            .addOnCompleteListener { task ->
+                if (!task.isSuccessful)
+                    Toast.makeText(this@HomeActivity, "Subscribe topic failed", Toast.LENGTH_SHORT)
+                        .show()
+            }
+    }
 
     // function when click on sign out menu
     private fun signOut() {
