@@ -34,4 +34,10 @@
     <string name="shipping">Shipping</string>
     <string name="shipped">Shipped</string>
     <string name="cancelled">Cancelled</string>
+    <string name="update_order">Update Order</string>
+    <string name="update_order_status">Update Order Status</string>
+    <string name="restore_placed">Restore Placed</string>
+    <string name="delete">Delete</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
 </resources>
