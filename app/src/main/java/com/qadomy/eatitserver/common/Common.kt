@@ -96,7 +96,7 @@ object Common {
             pendingIntent =
                 PendingIntent.getActivity(context, id, intent, PendingIntent.FLAG_UPDATE_CURRENT)
 
-        val NOTIFICATION_CHANNEL_ID = "qadomy.eatitservert"
+        val NOTIFICATION_CHANNEL_ID = "qadomy.dev.eatit"
 
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -108,7 +108,7 @@ object Common {
                 NotificationManager.IMPORTANCE_DEFAULT
             )
 
-            notificationChannel.description = "Eat It Server"
+            notificationChannel.description = "Eat It"
             notificationChannel.enableLights(true)
             notificationChannel.enableVibration(true)
             notificationChannel.lightColor = (Color.RED)

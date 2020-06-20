@@ -3,7 +3,7 @@ package com.qadomy.eatitserver.service
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.qadomy.eatitserver.common.Common
-import kotlin.random.Random
+import java.util.*
 
 class MyFCMServices : FirebaseMessagingService() {
 
@@ -24,7 +24,7 @@ class MyFCMServices : FirebaseMessagingService() {
 
         if (dataReCV != null) {
             Common.showNotification(
-                this, Random.nextInt(),
+                this, Random().nextInt(),
                 dataReCV[Common.NOTI_TITLE],
                 dataReCV[Common.NOTI_CONTENT],
                 null

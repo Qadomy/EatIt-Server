@@ -20,7 +20,10 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionDeniedResponse
@@ -35,13 +38,25 @@ import com.qadomy.eatitserver.common.Common
 import com.qadomy.eatitserver.common.MySwipeHelper
 import com.qadomy.eatitserver.eventbus.ChangeMenuClick
 import com.qadomy.eatitserver.eventbus.LoadOrderEvent
+import com.qadomy.eatitserver.model.FCMResponse
+import com.qadomy.eatitserver.model.FCMSendData
 import com.qadomy.eatitserver.model.OrderModel
+import com.qadomy.eatitserver.model.TokenModel
+import com.qadomy.eatitserver.remote.IFCMService
+import com.qadomy.eatitserver.remote.RetrofitFCMClient
+import dmax.dialog.SpotsDialog
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.fragment_order.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 
 class OrderFragment : Fragment() {
+
+    private val compositeDisposable = CompositeDisposable()
+    lateinit var ifcmService: IFCMService
 
     private lateinit var orderViewModel: OrderViewModel
     lateinit var recyclerOrder: RecyclerView
@@ -65,6 +80,8 @@ class OrderFragment : Fragment() {
         if (EventBus.getDefault().isRegistered(this))
             EventBus.getDefault().unregister(this)
 
+        // clear the composite Disposable
+        compositeDisposable.clear()
         super.onStop()
     }
 
@@ -112,6 +129,9 @@ class OrderFragment : Fragment() {
      * Init view
      */
     private fun initView(root: View) {
+
+        // init IFCMService
+        ifcmService = RetrofitFCMClient.getInstance().create(IFCMService::class.java)
 
         // enable menu
         setHasOptionsMenu(true)
@@ -416,14 +436,85 @@ class OrderFragment : Fragment() {
                         .show()
                 }
                 .addOnSuccessListener {
+
+                    // create dialog
+                    val dialog =
+                        SpotsDialog.Builder().setContext(requireContext()).setCancelable(false)
+                            .build()
+                    dialog.show()
+
+                    // load token
+                    FirebaseDatabase.getInstance()
+                        .getReference(Common.TOKEN_REF)
+                        .child(orderModel.userId!!)
+                        .addListenerForSingleValueEvent(object : ValueEventListener {
+                            override fun onCancelled(p0: DatabaseError) {
+                                dialog.dismiss()
+                                Toast.makeText(context, "" + p0.message, Toast.LENGTH_SHORT).show()
+                            }
+
+                            override fun onDataChange(p0: DataSnapshot) {
+                                if (p0.exists()) {
+                                    val tokenModel = p0.getValue(TokenModel::class.java)
+                                    val notiData = HashMap<String, String>()
+                                    notiData.put(Common.NOTI_TITLE, "Your order was updated")
+
+                                    notiData.put(
+                                        Common.NOTI_CONTENT, StringBuilder("Your order ")
+                                            .append(orderModel.key)
+                                            .append(" was update to ")
+                                            .append(Common.convertStatusToString(status)).toString()
+                                    )
+
+                                    val sendData = FCMSendData(tokenModel!!.token!!, notiData)
+                                    compositeDisposable.add(
+                                        ifcmService.sendNotification(sendData)
+                                            .subscribeOn(Schedulers.io())
+                                            .observeOn(AndroidSchedulers.mainThread())
+                                            .subscribe({ t: FCMResponse? ->
+                                                dialog.dismiss()
+                                                if (t!!.success == 1) {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Update order successfully",
+                                                        Toast.LENGTH_SHORT
+                                                    )
+                                                        .show()
+
+                                                } else {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Failed to send notification",
+                                                        Toast.LENGTH_SHORT
+                                                    )
+                                                        .show()
+                                                }
+                                            }, { t: Throwable? ->
+                                                dialog.dismiss()
+                                                Toast.makeText(
+                                                    context,
+                                                    "" + t!!.message,
+                                                    Toast.LENGTH_SHORT
+                                                )
+                                                    .show()
+                                            })
+                                    )
+
+                                } else {
+                                    dialog.dismiss()
+                                    Toast.makeText(context, "Token not found", Toast.LENGTH_SHORT)
+                                        .show()
+                                }
+                            }
+                        })
+
+
                     // we remove item in list recycle view
                     adapter!!.removeItem(pos)
                     adapter!!.notifyItemRemoved(pos)
 
                     updateTextCounter()
 
-                    Toast.makeText(requireContext(), "Order updated success!", Toast.LENGTH_SHORT)
-                        .show()
                 }
 
         } else {
