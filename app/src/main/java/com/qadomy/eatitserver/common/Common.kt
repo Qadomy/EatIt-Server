@@ -143,21 +143,18 @@ object Common {
         return StringBuilder("/topics/new_order").toString()
     }
 
+    const val SHIPPER_REF = "Shipper"
     const val SERVER_REF = "Server"
+    const val CATEGORY_REF = "Category"
+    const val ORDER_REF = "Order"
+    const val TOKEN_REF = "Tokens"
+    const val NOTIFICATION_CONTENT = "content"
+    const val NOTIFICATION_TITLE = "title"
+
+    const val DEFAULT_COLUMN_COUNT: Int = 0
+    const val FULL_WIDTH_COLUMN: Int = 1
+
     var currentServerUser: ServerUserModel? = null
     var FOOD_SELECTED: FoodModel? = null
     var CATEGORY_SELECTED: CategoryModel? = null
-    var AUTHORISE_TOKEN: String? = null
-    var CURRENT_TOKEN: String = ""
-    const val DEFAULT_COLUMN_COUNT: Int = 0
-    const val FULL_WIDTH_COLUMN: Int = 1
-    const val CATEGORY_REF: String = "Category"
-    const val ORDER_REF: String = "Order"
-    const val COMMENT_REF: String = "Comments"
-    const val BEST_DEALS_REF: String = "BestDeals"
-    const val POPULAR_REF: String = "MostPopular"
-    const val USER_REFERENCE = "Users"
-    const val TOKEN_REF: String = "Tokens"
-    const val NOTI_CONTENT: String = "content"
-    const val NOTI_TITLE: String = "title"
 }

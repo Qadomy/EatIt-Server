@@ -457,10 +457,10 @@ class OrderFragment : Fragment() {
                                 if (p0.exists()) {
                                     val tokenModel = p0.getValue(TokenModel::class.java)
                                     val notiData = HashMap<String, String>()
-                                    notiData.put(Common.NOTI_TITLE, "Your order was updated")
+                                    notiData.put(Common.NOTIFICATION_TITLE, "Your order was updated")
 
                                     notiData.put(
-                                        Common.NOTI_CONTENT, StringBuilder("Your order ")
+                                        Common.NOTIFICATION_CONTENT, StringBuilder("Your order ")
                                             .append(orderModel.key)
                                             .append(" was update to ")
                                             .append(Common.convertStatusToString(status)).toString()

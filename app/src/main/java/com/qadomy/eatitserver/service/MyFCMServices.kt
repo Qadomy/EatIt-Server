@@ -25,8 +25,8 @@ class MyFCMServices : FirebaseMessagingService() {
         if (dataReCV != null) {
             Common.showNotification(
                 this, Random().nextInt(),
-                dataReCV[Common.NOTI_TITLE],
-                dataReCV[Common.NOTI_CONTENT],
+                dataReCV[Common.NOTIFICATION_TITLE],
+                dataReCV[Common.NOTIFICATION_CONTENT],
                 null
             )
         }

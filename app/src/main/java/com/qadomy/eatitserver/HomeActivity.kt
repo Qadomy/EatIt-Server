@@ -71,7 +71,7 @@ class HomeActivity : AppCompatActivity() {
         // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.nav_category, R.id.nav_food_list, R.id.nav_order
+                R.id.nav_category, R.id.nav_food_list, R.id.nav_order, R.id.nav_shipper
             ), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
@@ -91,7 +91,6 @@ class HomeActivity : AppCompatActivity() {
                     R.id.nav_sign_out -> {
                         // when click on sign out menu
                         signOut()
-
                     }
                     R.id.nav_category -> {
                         if (menuClick != item.itemId) {
@@ -104,8 +103,12 @@ class HomeActivity : AppCompatActivity() {
                             navController.popBackStack() // clear back stack
                             navController.navigate(R.id.nav_order)
                         }
-
-
+                    }
+                    R.id.nav_shipper -> {
+                        if (menuClick != item.itemId) {
+                            navController.popBackStack() // clear back stack
+                            navController.navigate(R.id.nav_shipper)
+                        }
                     }
 
                 }
