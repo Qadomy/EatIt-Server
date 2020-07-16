@@ -1,5 +1,8 @@
 package com.qadomy.eatitserver.ui.shipper
 
+import android.app.AlertDialog
+import android.widget.Button
+import android.widget.RadioButton
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.google.firebase.database.DataSnapshot
@@ -8,7 +11,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.qadomy.eatitserver.callback.IShipperLoadCallbackListener
 import com.qadomy.eatitserver.common.Common
-import com.qadomy.eatitserver.model.CategoryModel
+import com.qadomy.eatitserver.model.OrderModel
 import com.qadomy.eatitserver.model.ShipperModel
 
 class ShipperViewModel : ViewModel(), IShipperLoadCallbackListener {
@@ -59,6 +62,22 @@ class ShipperViewModel : ViewModel(), IShipperLoadCallbackListener {
 
     override fun onShipperLoadSuccess(shipperList: List<ShipperModel>) {
         shipperListMutable!!.value = shipperList
+    }
+
+    override fun onShipperLoadSuccess(
+        pos: Int,
+        orderModel: OrderModel?,
+        shipperList: List<ShipperModel>?,
+        dialog: AlertDialog?,
+        ok: Button?,
+        cancel: Button?,
+        rdiShipping: RadioButton?,
+        rdiShipped: RadioButton?,
+        rdiCancelled: RadioButton?,
+        rdiDelete: RadioButton?,
+        rdiRestore: RadioButton?
+    ) {
+        // nothing
     }
 
     override fun onShipperLoadFailed(message: String) {

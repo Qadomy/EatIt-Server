@@ -35,9 +35,9 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/txt_title_small"
         android:fontFamily="@font/brandon_medium"
-        tools:text="Status: PLaced"
         android:textColor="@android:color/darker_gray"
-        android:textSize="22sp" />
+        android:textSize="22sp"
+        tools:text="Status: PLaced" />
 
     <RadioGroup
         android:id="@+id/rdi_group"
@@ -67,20 +67,14 @@
 
     </RadioGroup>
 
-    <ScrollView
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_marginTop="20dp"
+        android:id="@+id/recycler_shipper"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/layout_button"
         android:layout_below="@id/rdi_group"
-        android:scrollbars="none">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="shipper list"
-            android:textSize="200sp" />
-
-    </ScrollView>
+        android:scrollbars="none" />
 
     <LinearLayout
         android:id="@+id/layout_button"
